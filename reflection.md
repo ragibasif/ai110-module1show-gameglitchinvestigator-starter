@@ -50,15 +50,21 @@ Claude helped design the initial test structure (showing how to unpack the tuple
 
 ## 4. What did you learn about Streamlit and state?
 
-- In your own words, explain why the secret number kept changing in the original app.
-- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
-- What change did you make that finally gave the game a stable secret number?
+Every time a user interacts with a Streamlit widget — clicking a button, changing a dropdown — Streamlit reruns the entire Python script from top to bottom. In the original app, `random.randint(low, high)` was called unconditionally at the top level, so every button click generated a brand-new secret number and wiped out any progress the player had made.
+
+If I were explaining this to a friend: imagine every button click in a web app refreshed the whole page and re-ran all the setup code. That would be chaos — your form inputs would disappear, your score would reset, everything would start over. Streamlit's `st.session_state` is a dictionary that survives those reruns, so you can store values there (like the secret number or the current score) and they persist across clicks.
+
+The fix was wrapping the secret generation in a `if "secret" not in st.session_state:` guard. That way `random.randint` only runs once — the very first time the page loads — and every subsequent rerun just reads the already-stored value instead of replacing it.
 
 ---
 
 ## 5. Looking ahead: your developer habits
 
-- What is one habit or strategy from this project that you want to reuse in future labs or projects?
-  - This could be a testing habit, a prompting strategy, or a way you used Git.
-- What is one thing you would do differently next time you work with AI on a coding task?
-- In one or two sentences, describe how this project changed the way you think about AI generated code.
+**Habit to keep — write a failing test before touching the fix.**
+On this project I added FIXME comments, wrote pytest cases that explicitly failed against the broken code, and only then made the code change. Seeing the test go from red to green gave me concrete proof the fix actually worked, rather than just assuming it did. I want to carry that habit into future labs: don't claim something is fixed until a test says so.
+
+**One thing I'd do differently — ask the AI to explain its reasoning before accepting a suggestion.**
+I accepted the first test structure Claude produced (substring checks on the message string) without questioning it. When I was told to simplify, the better approach was obvious in hindsight. Next time I'll ask "why did you choose this approach and what are the trade-offs?" before running with any non-trivial suggestion.
+
+**How this changed my thinking about AI-generated code.**
+Before this project I assumed AI-generated code was either correct or obviously broken. What I actually found was subtler: the code ran without errors, looked reasonable at first glance, and only revealed its bugs when I played it carefully or wrote tests against it. AI code needs the same skeptical review you'd give any code from a new colleague — running it is not the same as verifying it.
